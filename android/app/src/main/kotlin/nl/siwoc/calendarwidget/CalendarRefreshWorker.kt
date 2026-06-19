@@ -108,6 +108,7 @@ object CalendarRefreshWorker {
 
     private fun saveAndReturn(context: Context, data: CalendarWidgetData): CalendarWidgetData {
         data.save(context)
+        CalendarWidgetUpdater.requestUpdate(context)
         return data
     }
 

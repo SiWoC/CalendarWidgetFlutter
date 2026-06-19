@@ -16,4 +16,9 @@ object Utils {
     fun argbToHex(argb: Int): String = "#%08X".format(argb)
     
     fun hexToColor(hex: String): Color = Color(hexToArgb(hex))
+
+    fun backgroundFill(hex: String, opacityPercent: Int): Color {
+        val clamped = opacityPercent.coerceIn(0, 100)
+        return hexToColor(hex).copy(alpha = clamped / 100f)
+    }
 }

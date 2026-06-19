@@ -6,8 +6,8 @@ import '../widget_settings.dart';
 
 /// In-app preview matching the home-screen widget layout.
 ///
-/// Display fonts and header color come from [settings]; event line colors
-/// come from the calendar snapshot ([data]).
+/// Render values come from the calendar snapshot ([data]); [settings] is kept
+/// for API compatibility (e.g. background chrome from the parent frame).
 class CalendarPreview extends StatelessWidget {
   const CalendarPreview({
     super.key,
@@ -30,7 +30,7 @@ class CalendarPreview extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         child: _buildContent(),
       ),
     );
@@ -47,14 +47,16 @@ class CalendarPreview extends StatelessWidget {
       );
     }
 
+    final headerColor = Utils.hexToColor(data!.headerColor);
+
     if (data!.hasError) {
       return Center(
         child: Text(
           data!.error!.message,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Utils.hexToColor(settings.headerColor),
-            fontSize: settings.headerFontSize.toDouble(),
+            color: headerColor,
+            fontSize: data!.headerFontSize.toDouble(),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -68,25 +70,25 @@ class CalendarPreview extends StatelessWidget {
           data!.headerDate,
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Utils.hexToColor(settings.headerColor),
-            fontSize: settings.headerFontSize.toDouble(),
+            color: headerColor,
+            fontSize: data!.headerFontSize.toDouble(),
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         for (final section in data!.sections) ...[
           if (section.events.isNotEmpty) ...[
             Text(
               section.title,
               style: TextStyle(
-                color: Utils.hexToColor(settings.headerColor),
-                fontSize: settings.eventFontSize.toDouble(),
+                color: headerColor,
+                fontSize: section.events.first.fontSize.toDouble(),
                 fontWeight: FontWeight.bold,
               ),
             ),
             for (final event in section.events)
-              _EventLine(event: event, fontSize: settings.eventFontSize),
-            const SizedBox(height: 6),
+              _EventLine(event: event, headerColor: headerColor),
+            const SizedBox(height: 4),
           ],
         ],
       ],
@@ -95,29 +97,38 @@ class CalendarPreview extends StatelessWidget {
 }
 
 class _EventLine extends StatelessWidget {
-  const _EventLine({required this.event, required this.fontSize});
+  const _EventLine({required this.event, required this.headerColor});
 
   final CalendarEvent event;
-  final int fontSize;
+  final Color headerColor;
 
   @override
   Widget build(BuildContext context) {
-    final color = Utils.hexToColor(event.color);
-    final fontSizeValue = fontSize.toDouble();
-    final locationSuffix =
-        event.location != null ? ' [${event.location}]' : '';
+    final eventColor = Utils.hexToColor(event.color);
+    final fontSizeValue = event.fontSize.toDouble();
+    final locationSuffix = event.location != null ? ' [${event.location}]' : '';
 
-    if (event.isAllDay) {
-      return Text(
-        '• ${event.title}$locationSuffix',
-        style: TextStyle(color: color, fontSize: fontSizeValue),
-      );
-    }
+    final prefix = event.isAllDay
+        ? '● '
+        : (event.time != null ? '${event.time} ' : '');
 
-    final timePrefix = event.time != null ? '${event.time} ' : '';
-    return Text(
-      '$timePrefix${event.title}$locationSuffix',
-      style: TextStyle(color: color, fontSize: fontSizeValue),
+    final baseStyle = TextStyle(
+      fontSize: fontSizeValue,
+      fontWeight: FontWeight.bold,
+    );
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (prefix.isNotEmpty)
+          Text(prefix, style: baseStyle.copyWith(color: headerColor)),
+        Expanded(
+          child: Text(
+            '${event.title}$locationSuffix',
+            style: baseStyle.copyWith(color: eventColor),
+          ),
+        ),
+      ],
     );
   }
 }

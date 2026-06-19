@@ -223,9 +223,10 @@ Build in this order (check off as done):
 - [x] **DataModel** — JSON schema (`schemaVersion`, error state)
 - [x] **CalendarRefreshWorker** — `CalendarContract` → JSON → SharedPreferences
 - [x] **MethodChannel** — `refresh()` runs worker, returns JSON for Flutter preview
-- [ ] **Flutter companion** — permission flow, settings UI, pin widget
-- [ ] **Glance widget** — `CalendarWidgetReceiver`, read prefs, draw UI; `updatePeriodMillis="0"`
+- [x] **Flutter companion** — permission flow,  data preview
+- [x] **Glance widget** — `CalendarWidgetReceiver`, read prefs, draw UI; `updatePeriodMillis="0"`
 - [ ] **WorkManager** — periodic (30 min), one-time (manual refresh), boot reschedule
+- [ ] **Flutter companion** — settings UI, pin widget
 - [ ] **Edge cases** — permission denied fallback, midnight / day rollover refresh
 
 ---

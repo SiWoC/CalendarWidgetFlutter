@@ -62,7 +62,9 @@ void main() {
 
     expect(find.text('Vrijdag 12 juni 2026'), findsOneWidget);
     expect(find.text('VANDAAG'), findsOneWidget);
-    expect(find.text('• Vakantie'), findsOneWidget);
-    expect(find.text('19:00-21:00 TNH Meetup'), findsOneWidget);
+    expect(find.text('●'), findsOneWidget);
+    expect(find.text('Vakantie'), findsOneWidget);
+    expect(find.text('19:00-21:00 '), findsOneWidget);
+    expect(find.text('TNH Meetup'), findsOneWidget);
   });
 }

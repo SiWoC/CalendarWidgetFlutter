@@ -30,16 +30,13 @@ class CalendarPreviewFrame extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           _WallpaperLayer(wallpaperPng: wallpaperPng),
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: CalendarPreview(
-              settings: settings,
-              data: data,
-              isLoading: isLoading,
-              backgroundColor: Utils.backgroundFill(
-                settings.backgroundColor,
-                settings.backgroundOpacity,
-              ),
+          CalendarPreview(
+            settings: settings,
+            data: data,
+            isLoading: isLoading,
+            backgroundColor: Utils.backgroundFill(
+              settings.backgroundColor,
+              settings.backgroundOpacity,
             ),
           ),
         ],
