@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widget_name">Kalender</string>
-    <string name="widget_description">Toont aankomende kalenderafspraken</string>
+    <string name="app_name">Agenda Widget</string>
+    <string name="widget_name">Agenda</string>
+    <string name="widget_description">Toont aankomende agenda-items</string>
+    <string name="error_permission_denied">Agenda-toestemming vereist</string>
+    <string name="error_no_calendars">Geen agenda\'s gevonden</string>
+    <string name="error_no_calendars_selected">Geen agenda\'s geselecteerd</string>
+    <string name="error_unknown">Onbekende fout</string>
+    <string name="section_today">VANDAAG</string>
+    <string name="section_tomorrow">MORGEN</string>
+    <string name="widget_empty_load_data">Open de app om agenda-gegevens te laden.</string>
 </resources>

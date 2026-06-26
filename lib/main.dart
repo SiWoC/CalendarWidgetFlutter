@@ -52,7 +52,7 @@ class _CalendarWidgetAppState extends State<CalendarWidgetApp> {
     }
 
     return MaterialApp(
-      title: 'Calendar Widget',
+      title: lookupAppLocalizations(settings.appLocale).appTitle,
       locale: settings.appLocale,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -203,7 +203,11 @@ class _CalendarHomePageState extends State<CalendarHomePage>
     } on PlatformException catch (error) {
       if (!mounted) return;
       setState(() => _isRefreshing = false);
-      _showSnackBar('Vernieuwen mislukt: ${error.message ?? error.code}');
+      _showSnackBar(
+        AppLocalizations.of(context)!.refreshFailed(
+          error.message ?? error.code,
+        ),
+      );
     } on StateError catch (error) {
       if (!mounted) return;
       setState(() => _isRefreshing = false);
@@ -267,13 +271,15 @@ class _CalendarHomePageState extends State<CalendarHomePage>
   Widget build(BuildContext context) {
     final previewHeight = MediaQuery.sizeOf(context).height * 0.5;
 
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calendar Widget'),
+        title: Text(l10n.appTitle),
         actions: [
           IconButton(
             onPressed: (_isRefreshing || !_calendarGranted) ? null : _refresh,
-            tooltip: 'Vernieuwen',
+            tooltip: l10n.actionRefresh,
             icon: _isRefreshing
                 ? const SizedBox(
                     width: 20,

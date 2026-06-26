@@ -91,7 +91,7 @@ void main() {
     const settings = WidgetSettings();
     final data = CalendarWidgetData.error(
       code: WidgetConstants.ERROR_PERMISSION_DENIED,
-      message: 'Kalender toestemming vereist',
+      message: 'Agenda-toestemming vereist',
       settings: settings,
     );
 

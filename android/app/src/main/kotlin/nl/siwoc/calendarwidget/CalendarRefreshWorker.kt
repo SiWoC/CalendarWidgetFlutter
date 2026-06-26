@@ -29,7 +29,11 @@ object CalendarRefreshWorker {
                 context,
                 CalendarWidgetData.error(
                     code = WidgetConstants.ERROR_PERMISSION_DENIED,
-                    message = "Kalender toestemming vereist",
+                    message = Utils.stringForLocale(
+                        context,
+                        settings.locale,
+                        R.string.error_permission_denied,
+                    ),
                     settings = settings,
                     headerDate = headerDate,
                 ),
@@ -43,7 +47,11 @@ object CalendarRefreshWorker {
                     context,
                     CalendarWidgetData.error(
                         code = WidgetConstants.ERROR_NO_CALENDARS,
-                        message = "Geen kalenders gevonden",
+                        message = Utils.stringForLocale(
+                            context,
+                            settings.locale,
+                            R.string.error_no_calendars,
+                        ),
                         settings = settings,
                         headerDate = headerDate,
                     ),
@@ -56,7 +64,11 @@ object CalendarRefreshWorker {
                     context,
                     CalendarWidgetData.error(
                         code = WidgetConstants.ERROR_NO_CALENDARS,
-                        message = "Geen kalenders geselecteerd",
+                        message = Utils.stringForLocale(
+                            context,
+                            settings.locale,
+                            R.string.error_no_calendars_selected,
+                        ),
                         settings = settings,
                         headerDate = headerDate,
                     ),
@@ -75,6 +87,7 @@ object CalendarRefreshWorker {
 
             val locale = localeFromSettings(settings)
             val sections = buildSections(
+                context = context,
                 instances = instances,
                 settings = settings,
                 locale = locale,
@@ -98,7 +111,11 @@ object CalendarRefreshWorker {
                 context,
                 CalendarWidgetData.error(
                     code = WidgetConstants.ERROR_UNKNOWN,
-                    message = exception.message ?: "Onbekende fout",
+                    message = exception.message ?: Utils.stringForLocale(
+                        context,
+                        settings.locale,
+                        R.string.error_unknown,
+                    ),
                     settings = settings,
                     headerDate = headerDate,
                 ),
@@ -127,9 +144,19 @@ object CalendarRefreshWorker {
         }
     }
 
-    private fun formatSectionTitle(dayOffset: Int, date: Calendar, locale: Locale): String {
-        if (dayOffset == 0) return "VANDAAG"
-        if (dayOffset == 1) return "MORGEN"
+    private fun formatSectionTitle(
+        context: Context,
+        settings: WidgetSettings,
+        dayOffset: Int,
+        date: Calendar,
+        locale: Locale,
+    ): String {
+        if (dayOffset == 0) {
+            return Utils.stringForLocale(context, settings.locale, R.string.section_today)
+        }
+        if (dayOffset == 1) {
+            return Utils.stringForLocale(context, settings.locale, R.string.section_tomorrow)
+        }
         val formatter = SimpleDateFormat("EEEE d MMMM", locale)
         return formatter.format(date.time).replaceFirstChar { char ->
             if (char.isLowerCase()) char.titlecase(locale) else char.toString()
@@ -270,6 +297,7 @@ object CalendarRefreshWorker {
     }
 
     private fun buildSections(
+        context: Context,
         instances: List<CalendarInstance>,
         settings: WidgetSettings,
         locale: Locale,
@@ -282,7 +310,7 @@ object CalendarRefreshWorker {
             val day = dayCalendar(dayOffset)
             val dayStart = day.timeInMillis
             val dayEnd = startOfDay(day, offsetDays = 1) - 1
-            val title = formatSectionTitle(dayOffset, day, locale)
+            val title = formatSectionTitle(context, settings, dayOffset, day, locale)
 
             val dayEvents = instances
                 .filter { instance -> instance.overlapsDay(dayStart, dayEnd) }

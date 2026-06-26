@@ -1,5 +1,22 @@
 {
   "@@locale": "en",
+  "appTitle": "Calendar Widget",
+  "actionRefresh": "Refresh",
+  "refreshFailed": "Refresh failed: {error}",
+  "@refreshFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "previewTapRefresh": "Tap refresh to load calendar data.",
+  "permissionDeniedMessage": "Calendar access is denied. Allow access in app settings.",
+  "permissionRequiredMessage": "This app needs access to your calendar to show appointments.",
+  "openSettings": "Open settings",
+  "grantPermission": "Grant permission",
+  "languageDutch": "Nederlands",
+  "languageEnglish": "English",
   "settingsLanguage": "Language",
   "settingsAppearance": "Appearance",
   "settingsHeaderColor": "Header color",

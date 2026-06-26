@@ -1,8 +1,12 @@
 package nl.siwoc.calendarwidget
 
+import android.content.Context
 import android.content.SharedPreferences
+import android.content.res.Configuration
 import android.graphics.Color as AndroidColor
+import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.Color
+import java.util.Locale
 
 object Utils {
     fun hexToArgb(hex: String): Int {
@@ -21,6 +25,14 @@ object Utils {
     fun backgroundFill(hex: String, opacityPercent: Int): Color {
         val clamped = opacityPercent.coerceIn(0, 100)
         return hexToColor(hex).copy(alpha = clamped / 100f)
+    }
+
+    /** Resolves [resId] for the user-selected app locale ([WidgetSettings.locale]). */
+    fun stringForLocale(context: Context, localeTag: String, @StringRes resId: Int): String {
+        val locale = Locale.forLanguageTag(localeTag)
+        val config = Configuration(context.resources.configuration)
+        config.setLocale(locale)
+        return context.createConfigurationContext(config).getString(resId)
     }
 }
 

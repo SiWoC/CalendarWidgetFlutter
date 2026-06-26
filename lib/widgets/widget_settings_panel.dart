@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import '../l10n/app_localizations_ext.dart';
 import '../utils.dart';
 import '../widget_constants.dart';
 import '../widget_settings.dart';
@@ -26,6 +27,7 @@ class WidgetSettingsPanel extends StatelessWidget {
       children: [
         _LanguageTile(
           label: l10n.settingsLanguage,
+          l10n: l10n,
           value: settings.locale,
           onChanged: (locale) =>
               onSettingsChanged(settings.copyWith(locale: locale)),
@@ -123,11 +125,13 @@ class WidgetSettingsPanel extends StatelessWidget {
 class _LanguageTile extends StatelessWidget {
   const _LanguageTile({
     required this.label,
+    required this.l10n,
     required this.value,
     required this.onChanged,
   });
 
   final String label;
+  final AppLocalizations l10n;
   final String value;
   final ValueChanged<String> onChanged;
 
@@ -137,15 +141,13 @@ class _LanguageTile extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       title: Text(label),
       trailing: DropdownButton<String>(
-        value: WidgetSettings.supportedAppLocales.contains(value)
-            ? value
-            : WidgetConstants.APP_LOCALE_NL,
+        value: AppLocale.isSupported(value) ? value : AppLocale.defaultTag,
         underline: const SizedBox.shrink(),
         items: [
-          for (final locale in WidgetSettings.supportedAppLocales)
+          for (final locale in AppLocale.supportedTags)
             DropdownMenuItem(
               value: locale,
-              child: Text(WidgetSettings.languageLabels[locale]!),
+              child: Text(l10n.labelForLocale(locale)),
             ),
         ],
         onChanged: (locale) {

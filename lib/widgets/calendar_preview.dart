@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../calendar_widget_data.dart';
+import '../l10n/app_localizations.dart';
 import '../utils.dart';
 import '../widget_settings.dart';
 
@@ -31,19 +32,19 @@ class CalendarPreview extends StatelessWidget {
       ),
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        child: _buildContent(),
+        child: _buildContent(context),
       ),
     );
   }
 
-  Widget _buildContent() {
+  Widget _buildContent(BuildContext context) {
     if (isLoading && data == null) {
       return const Center(child: CircularProgressIndicator());
     }
 
     if (data == null) {
-      return const Center(
-        child: Text('Tik op vernieuwen om kalendergegevens te laden.'),
+      return Center(
+        child: Text(AppLocalizations.of(context)!.previewTapRefresh),
       );
     }
 

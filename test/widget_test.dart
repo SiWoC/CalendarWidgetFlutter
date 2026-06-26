@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:calendarwidget/calendar_widget_data.dart';
+import 'package:calendarwidget/l10n/app_localizations.dart';
 import 'package:calendarwidget/widget_settings.dart';
 import 'package:calendarwidget/widgets/calendar_preview.dart';
 
@@ -36,33 +38,34 @@ void main() {
 }
 ''';
 
+  Widget wrap(Widget child) {
+    return MaterialApp(
+      locale: const Locale('nl'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: child),
+    );
+  }
+
   testWidgets('CalendarPreview shows header and sections', (tester) async {
     const settings = WidgetSettings();
     final data = CalendarWidgetData.fromJsonString(sampleJson);
 
     await tester.pumpWidget(
-      const MaterialApp(
-        home: Scaffold(
-          body: CalendarPreview(settings: settings, data: null),
-        ),
-      ),
+      wrap(const CalendarPreview(settings: settings, data: null)),
     );
     expect(
-      find.text('Tik op vernieuwen om kalendergegevens te laden.'),
+      find.text('Tik op vernieuwen om agenda-gegevens te laden.'),
       findsOneWidget,
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: CalendarPreview(settings: settings, data: data),
-        ),
-      ),
+      wrap(CalendarPreview(settings: settings, data: data)),
     );
 
     expect(find.text('Vrijdag 12 juni 2026'), findsOneWidget);
     expect(find.text('VANDAAG'), findsOneWidget);
-    expect(find.text('●'), findsOneWidget);
+    expect(find.text('● '), findsOneWidget);
     expect(find.text('Vakantie'), findsOneWidget);
     expect(find.text('19:00-21:00 '), findsOneWidget);
     expect(find.text('TNH Meetup'), findsOneWidget);

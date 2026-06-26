@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Calendar Widget</string>
+    <string name="widget_name">Calendar</string>
+    <string name="widget_description">Shows upcoming calendar events</string>
+    <string name="error_permission_denied">Calendar permission required</string>
+    <string name="error_no_calendars">No calendars found</string>
+    <string name="error_no_calendars_selected">No calendars selected</string>
+    <string name="error_unknown">Unknown error</string>
+    <string name="section_today">TODAY</string>
+    <string name="section_tomorrow">TOMORROW</string>
+    <string name="widget_empty_load_data">Open the app to load calendar data.</string>
+</resources>

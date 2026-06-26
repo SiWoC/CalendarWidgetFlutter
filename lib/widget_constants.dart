@@ -25,10 +25,6 @@ abstract final class WidgetConstants {
   static const MIN_FETCH_DAYS = 3;
   static const MAX_FETCH_DAYS = 31;
 
-  static const APP_LOCALE_NL = 'nl';
-  static const APP_LOCALE_EN = 'en';
-  static const DEFAULT_LOCALE = APP_LOCALE_NL;
-
   static const DEFAULT_BACKGROUND_COLOR = '#4A4A4A4A';
   static const DEFAULT_BACKGROUND_OPACITY = 30;
 

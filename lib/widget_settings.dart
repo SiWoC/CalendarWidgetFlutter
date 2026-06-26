@@ -1,7 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_android/shared_preferences_android.dart';
 
+import 'package:flutter/material.dart';
+
+import 'l10n/app_localizations_ext.dart';
 import 'widget_constants.dart';
 
 /// User-configurable widget options (mirror [WidgetSettings.kt]).
@@ -11,7 +13,7 @@ class WidgetSettings {
     this.headerFontSize = WidgetConstants.DEFAULT_HEADER_FONT_SIZE,
     this.eventFontSize = WidgetConstants.DEFAULT_EVENT_FONT_SIZE,
     this.fetchDays = WidgetConstants.DEFAULT_FETCH_DAYS,
-    this.locale = WidgetConstants.DEFAULT_LOCALE,
+    this.locale = AppLocale.defaultTag,
     this.backgroundColor = WidgetConstants.DEFAULT_BACKGROUND_COLOR,
     this.backgroundOpacity = WidgetConstants.DEFAULT_BACKGROUND_OPACITY,
     this.selectedCalendarIds = const {},
@@ -38,16 +40,6 @@ class WidgetSettings {
     }
     return Locale(parts[0]);
   }
-
-  static const languageLabels = <String, String>{
-    WidgetConstants.APP_LOCALE_NL: 'Nederlands',
-    WidgetConstants.APP_LOCALE_EN: 'English',
-  };
-
-  static const supportedAppLocales = <String>[
-    WidgetConstants.APP_LOCALE_NL,
-    WidgetConstants.APP_LOCALE_EN,
-  ];
 
   static Future<SharedPreferencesWithCache> _prefs() {
     return SharedPreferencesWithCache.create(
@@ -88,8 +80,7 @@ class WidgetSettings {
           prefs.getInt(WidgetConstants.KEY_FETCH_DAYS) ??
           WidgetConstants.DEFAULT_FETCH_DAYS,
       locale:
-          prefs.getString(WidgetConstants.KEY_LOCALE) ??
-          WidgetConstants.DEFAULT_LOCALE,
+          prefs.getString(WidgetConstants.KEY_LOCALE) ?? AppLocale.defaultTag,
       backgroundColor:
           prefs.getString(WidgetConstants.KEY_BACKGROUND_COLOR) ??
           WidgetConstants.DEFAULT_BACKGROUND_COLOR,

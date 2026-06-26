@@ -98,6 +98,66 @@ abstract class AppLocalizations {
     Locale('nl'),
   ];
 
+  /// No description provided for @appTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar Widget'**
+  String get appTitle;
+
+  /// No description provided for @actionRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get actionRefresh;
+
+  /// No description provided for @refreshFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh failed: {error}'**
+  String refreshFailed(String error);
+
+  /// No description provided for @previewTapRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap refresh to load calendar data.'**
+  String get previewTapRefresh;
+
+  /// No description provided for @permissionDeniedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar access is denied. Allow access in app settings.'**
+  String get permissionDeniedMessage;
+
+  /// No description provided for @permissionRequiredMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This app needs access to your calendar to show appointments.'**
+  String get permissionRequiredMessage;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open settings'**
+  String get openSettings;
+
+  /// No description provided for @grantPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant permission'**
+  String get grantPermission;
+
+  /// No description provided for @languageDutch.
+  ///
+  /// In en, this message translates to:
+  /// **'Nederlands'**
+  String get languageDutch;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
   /// No description provided for @settingsLanguage.
   ///
   /// In en, this message translates to:

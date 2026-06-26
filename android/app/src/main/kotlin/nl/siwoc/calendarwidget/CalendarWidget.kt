@@ -82,7 +82,11 @@ private fun CalendarWidgetContent(context: Context) {
                 data == null -> {
                     item {
                         PlaceholderText(
-                            text = "Open de app om kalendergegevens te laden.",
+                            text = Utils.stringForLocale(
+                                context,
+                                settings.locale,
+                                R.string.widget_empty_load_data,
+                            ),
                             color = ColorProvider(Utils.hexToColor(settings.headerColor)),
                             fontSizeSp = settings.headerFontSize,
                         )
