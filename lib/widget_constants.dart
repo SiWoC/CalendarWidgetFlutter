@@ -21,7 +21,7 @@ abstract final class WidgetConstants {
   static const DEFAULT_FETCH_DAYS = 7;
   static const DEFAULT_LOCALE = 'nl-NL';
   static const DEFAULT_BACKGROUND_COLOR = '#4A4A4A4A';
-  static const DEFAULT_BACKGROUND_OPACITY = 50;
+  static const DEFAULT_BACKGROUND_OPACITY = 30;
 
   /// [CalendarWidgetData] JSON schema version.
   static const SCHEMA_VERSION = 1;

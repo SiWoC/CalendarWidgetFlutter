@@ -109,7 +109,6 @@ class _CalendarHomePageState extends State<CalendarHomePage>
   }
 
   Future<void> _syncPermissionState({required bool requestIfNeeded}) async {
-    final wasGranted = _calendarGranted;
     final granted = requestIfNeeded
         ? await CalendarPermission.ensureGranted()
         : await CalendarPermission.isGranted;
@@ -120,7 +119,14 @@ class _CalendarHomePageState extends State<CalendarHomePage>
       _calendarGranted = granted;
       _permanentlyDenied = permanentlyDenied;
     });
-    if (!wasGranted && granted) {
+    if (granted) {
+      try {
+        await CalendarPlatformChannel.schedulePeriodicRefresh();
+      } on PlatformException catch (error) {
+        debugPrint(
+          'schedulePeriodicRefresh failed: code=${error.code}, message=${error.message}',
+        );
+      }
       await _refresh();
     }
   }

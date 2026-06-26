@@ -25,8 +25,22 @@ class CalendarPlatformChannel(
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             METHOD_REFRESH -> refresh(result)
+            METHOD_SCHEDULE_PERIODIC_REFRESH -> schedulePeriodicRefresh(result)
             METHOD_GET_WALLPAPER -> getWallpaper(result)
             else -> result.notImplemented()
+        }
+    }
+
+    private fun schedulePeriodicRefresh(result: MethodChannel.Result) {
+        try {
+            CalendarRefreshScheduler.schedulePeriodicRefresh(context)
+            result.success(null)
+        } catch (exception: Exception) {
+            result.error(
+                ERROR_SCHEDULE_FAILED,
+                exception.message,
+                null,
+            )
         }
     }
 
@@ -71,9 +85,11 @@ class CalendarPlatformChannel(
 
     companion object {
         const val METHOD_REFRESH = "refresh"
+        const val METHOD_SCHEDULE_PERIODIC_REFRESH = "schedulePeriodicRefresh"
         const val METHOD_GET_WALLPAPER = "getWallpaper"
 
         private const val ERROR_REFRESH_FAILED = "refresh_failed"
+        private const val ERROR_SCHEDULE_FAILED = "schedule_failed"
         private const val ERROR_WALLPAPER_FAILED = "wallpaper_failed"
 
         private val refreshExecutor = Executors.newSingleThreadExecutor()

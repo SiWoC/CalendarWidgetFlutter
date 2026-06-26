@@ -17,6 +17,12 @@ object WidgetConstants {
 
     const val METHOD_CHANNEL = "nl.siwoc.calendarwidget/calendar"
 
+    /** Unique name for [CalendarRefreshScheduler] periodic WorkManager job. */
+    const val PERIODIC_REFRESH_WORK_NAME = "calendar_widget_periodic_refresh"
+
+    /** Background calendar refresh interval (minutes). Android minimum is 15. */
+    const val PERIODIC_REFRESH_INTERVAL_MINUTES = 30L
+
     // Readable hex; opaque black.
     const val DEFAULT_HEADER_COLOR = "#FF000000"
     const val DEFAULT_HEADER_FONT_SIZE = 14

@@ -21,15 +21,16 @@ The Flutter app is the **companion**: permissions, settings, preview, and manual
 │  • Settings (calendar selection, font size, colors …)           │
 │  • In-app preview (same layout as widget)                       │
 │  • MethodChannel.refresh() → triggers Kotlin refresh            │
+│  • When permission granted: schedulePeriodicRefresh() + refresh │
 └────────────────────────────┬────────────────────────────────────┘
                              │
                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  Kotlin — CalendarRefreshWorker (single implementation)         │
-│  • WorkManager: periodic refresh (30 min) + boot reschedule     │
+│  • WorkManager: periodic refresh (30 min); survives reboot once enqueued │
 │  • On-demand: same code path from MethodChannel.refresh()       │
 │  • CalendarContract → format JSON → SharedPreferences           │
-│  • Trigger Glance widget update                                 │
+│  • CalendarWidgetUpdater.requestUpdate() redraws Glance           │
 └────────────────────────────┬────────────────────────────────────┘
                              │
               SharedPreferences key: calendar_widget_data
@@ -43,7 +44,7 @@ The Flutter app is the **companion**: permissions, settings, preview, and manual
 └──────────────────────────┘   └──────────────────────────┘
 ```
 
-**Single source of truth:** JSON in app-private SharedPreferences. The worker writes it; the Glance widget and Flutter preview only read it.
+**Single source of truth:** JSON in app-private SharedPreferences. The worker writes it; Glance and Flutter preview only read it. Glance does **not** observe prefs changes — each successful write is followed by an explicit `CalendarWidgetUpdater.requestUpdate()`.
 
 ---
 
@@ -163,19 +164,21 @@ Declared in `AndroidManifest.xml`:
 **Flow:**
 
 1. Flutter app requests permission on first launch (user must grant before background refresh works).
-2. WorkManager **cannot** show a dialog — if permission is missing, worker writes empty/error state and widget shows fallback text.
-3. Optional: “Open settings” in Flutter app if permanently denied.
+2. Whenever calendar permission is granted (cold start, first grant, or resume), Flutter calls `schedulePeriodicRefresh()` and `refresh()`.
+3. WorkManager **cannot** show a dialog — if permission is missing, worker writes empty/error state and widget shows fallback text.
+4. Optional: “Open settings” in Flutter app if permanently denied.
 
 ---
 
 ## WorkManager
 
 
-| Job            | Purpose                                                     |
-| -------------- | ----------------------------------------------------------- |
-| **Periodic**   | Refresh calendar data on a schedule (interval 30 minutes)   |
-| **One-time**   | Enqueued by `MethodChannel.refresh()` for immediate update  |
-| **After boot** | Re-register periodic work (Application or `BOOT_COMPLETED`) |
+| Job            | Purpose                                                                                       |
+| -------------- | --------------------------------------------------------------------------------------------- |
+| **Periodic**   | Refresh calendar data every 30 minutes. Enqueued from Flutter via `schedulePeriodicRefresh()` whenever calendar permission is granted. |
+| **After boot** | WorkManager reschedules the periodic job automatically (no custom `BOOT_COMPLETED` receiver). |
+
+Once Flutter calls `schedulePeriodicRefresh()` while calendar permission is granted, the job is stored in WorkManager’s database and survives reboot without opening the app again.
 
 
 Periodic widget updates via `updatePeriodMillis` in `calendar_widget_info.xml` only **redraw** existing JSON — they do **not** fetch new calendar data. WorkManager owns data refresh.
@@ -190,7 +193,7 @@ Single MethodChannel: `nl.siwoc.calendarwidget/calendar` (`WidgetConstants.METHO
 | Method                      | Description                                                                                                                                             |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `refresh()`                 | Run `CalendarRefreshWorker` logic: read calendars → JSON → prefs → update widget. **Returns** JSON string for preview (no separate read call required). |
-| `schedulePeriodicRefresh()` | Register / update WorkManager periodic job (e.g. after settings change).                                                                                |
+| `schedulePeriodicRefresh()` | Register or update the 30-minute WorkManager periodic job. Called from Flutter whenever calendar permission is granted; safe to call again after settings change. |
 
 
 Settings stored in SharedPreferences file `nl.siwoc.calendarwidget` — read by Flutter (settings UI) and the Kotlin worker. Glance reads only the snapshot JSON.
@@ -204,11 +207,9 @@ Settings stored in SharedPreferences file `nl.siwoc.calendarwidget` — read by 
 | `event_font_size`       | int (sp)     | `14`        | Worker                                         | Event font size; copied into each `events[].fontsize` in JSON                        |
 | `fetch_days`            | int          | `7`         | Worker                                         | Days ahead to query (today + N)                                                      |
 | `locale`                | string       | `nl-NL`     | Worker                                         | Date/time formatting (`VANDAAG`, 24h times)                                          |
-| `selected_calendar_ids` | string (CSV) | `""` (all)  | Worker                                         | Comma-separated calendar IDs; empty = all visible                                    |
-
-
-**Kotlin:** `WidgetConstants.kt`, `WidgetSettings.kt`, `Utils.kt`, `CalendarWidgetData.kt`, `CalendarPlatformChannel.kt`  
-**Dart:** `widget_constants.dart`, `widget_settings.dart`, `utils.dart`, `calendar_widget_data.dart`, `calendar_platform_channel.dart`
+| `selected_calendar_ids` | string (CSV) | `""` (all)  | Worker, settings UI                          | Comma-separated calendar IDs; empty = all visible                                    |
+| `background_color`      | string (hex) | `#4A4A4A4A` | Glance, settings UI                            | Card fill color; `#AARRGGBB` hex; use `Utils.hexToColor()` at render time            |
+| `background_opacity`    | int (0–100)  | `30`        | Glance, settings UI                            | Card opacity percentage blended with `background_color`                              |
 
 Event colors are **not** settings — they come from `CalendarContract` and are written per event in the snapshot JSON.
 
@@ -223,9 +224,9 @@ Build in this order (check off as done):
 - [x] **DataModel** — JSON schema (`schemaVersion`, error state)
 - [x] **CalendarRefreshWorker** — `CalendarContract` → JSON → SharedPreferences
 - [x] **MethodChannel** — `refresh()` runs worker, returns JSON for Flutter preview
-- [x] **Flutter companion** — permission flow,  data preview
+- [x] **Flutter companion** — permission flow,  data preview; schedules periodic refresh when permission granted
 - [x] **Glance widget** — `CalendarWidgetReceiver`, read prefs, draw UI; `updatePeriodMillis="0"`
-- [ ] **WorkManager** — periodic (30 min), one-time (manual refresh), boot reschedule
+- [x] **WorkManager** — periodic (30 min); `CalendarRefreshCoroutineWorker` + `CalendarRefreshScheduler`
 - [ ] **Flutter companion** — settings UI, pin widget
 - [ ] **Edge cases** — permission denied fallback, midnight / day rollover refresh
 
