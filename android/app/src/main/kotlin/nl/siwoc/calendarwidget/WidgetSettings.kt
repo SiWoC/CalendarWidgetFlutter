@@ -41,15 +41,15 @@ data class WidgetSettings(
                     WidgetConstants.KEY_HEADER_COLOR,
                     WidgetConstants.DEFAULT_HEADER_COLOR,
                 ) ?: WidgetConstants.DEFAULT_HEADER_COLOR,
-                headerFontSize = prefs.getInt(
+                headerFontSize = prefs.getIntCompat(
                     WidgetConstants.KEY_HEADER_FONT_SIZE,
                     WidgetConstants.DEFAULT_HEADER_FONT_SIZE,
                 ),
-                eventFontSize = prefs.getInt(
+                eventFontSize = prefs.getIntCompat(
                     WidgetConstants.KEY_EVENT_FONT_SIZE,
                     WidgetConstants.DEFAULT_EVENT_FONT_SIZE,
                 ),
-                fetchDays = prefs.getInt(
+                fetchDays = prefs.getIntCompat(
                     WidgetConstants.KEY_FETCH_DAYS,
                     WidgetConstants.DEFAULT_FETCH_DAYS,
                 ),
@@ -61,7 +61,7 @@ data class WidgetSettings(
                     WidgetConstants.KEY_BACKGROUND_COLOR,
                     WidgetConstants.DEFAULT_BACKGROUND_COLOR,
                 ) ?: WidgetConstants.DEFAULT_BACKGROUND_COLOR,
-                backgroundOpacity = prefs.getInt(
+                backgroundOpacity = prefs.getIntCompat(
                     WidgetConstants.KEY_BACKGROUND_OPACITY,
                     WidgetConstants.DEFAULT_BACKGROUND_OPACITY,
                 ),

@@ -19,7 +19,16 @@ abstract final class WidgetConstants {
   static const DEFAULT_HEADER_FONT_SIZE = 14;
   static const DEFAULT_EVENT_FONT_SIZE = 14;
   static const DEFAULT_FETCH_DAYS = 7;
-  static const DEFAULT_LOCALE = 'nl-NL';
+
+  static const MIN_FONT_SIZE = 8;
+  static const MAX_FONT_SIZE = 30;
+  static const MIN_FETCH_DAYS = 3;
+  static const MAX_FETCH_DAYS = 31;
+
+  static const APP_LOCALE_NL = 'nl';
+  static const APP_LOCALE_EN = 'en';
+  static const DEFAULT_LOCALE = APP_LOCALE_NL;
+
   static const DEFAULT_BACKGROUND_COLOR = '#4A4A4A4A';
   static const DEFAULT_BACKGROUND_OPACITY = 30;
 

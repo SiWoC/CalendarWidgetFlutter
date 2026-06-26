@@ -28,7 +28,7 @@ object WidgetConstants {
     const val DEFAULT_HEADER_FONT_SIZE = 14
     const val DEFAULT_EVENT_FONT_SIZE = 14
     const val DEFAULT_FETCH_DAYS = 7
-    const val DEFAULT_LOCALE = "nl-NL"
+    const val DEFAULT_LOCALE = "nl"
     const val DEFAULT_BACKGROUND_COLOR = "#4A4A4A4A"
     const val DEFAULT_BACKGROUND_OPACITY = 30
 

@@ -1,36 +1,87 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'calendar_permission.dart';
 import 'calendar_platform_channel.dart';
 import 'calendar_widget_data.dart';
+import 'l10n/app_localizations.dart';
 import 'widget_settings.dart';
 import 'widgets/calendar_permission_banner.dart';
 import 'widgets/calendar_preview_frame.dart';
+import 'widgets/widget_settings_panel.dart';
 
 void main() {
   runApp(const CalendarWidgetApp());
 }
 
-class CalendarWidgetApp extends StatelessWidget {
+class CalendarWidgetApp extends StatefulWidget {
   const CalendarWidgetApp({super.key});
 
   @override
+  State<CalendarWidgetApp> createState() => _CalendarWidgetAppState();
+}
+
+class _CalendarWidgetAppState extends State<CalendarWidgetApp> {
+  WidgetSettings? _settings;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetSettings.load().then((settings) {
+      if (!mounted) return;
+      setState(() => _settings = settings);
+    });
+  }
+
+  void _replaceSettings(WidgetSettings settings) {
+    setState(() => _settings = settings);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final settings = _settings;
+
+    if (settings == null) {
+      return const MaterialApp(
+        home: Scaffold(body: Center(child: CircularProgressIndicator())),
+      );
+    }
+
     return MaterialApp(
       title: 'Calendar Widget',
+      locale: settings.appLocale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blueGrey),
         useMaterial3: true,
       ),
-      home: const CalendarHomePage(),
+      home: CalendarHomePage(
+        settings: settings,
+        onSettingsChanged: _replaceSettings,
+      ),
     );
   }
 }
 
 class CalendarHomePage extends StatefulWidget {
-  const CalendarHomePage({super.key});
+  const CalendarHomePage({
+    super.key,
+    required this.settings,
+    required this.onSettingsChanged,
+  });
+
+  final WidgetSettings settings;
+  final ValueChanged<WidgetSettings> onSettingsChanged;
 
   @override
   State<CalendarHomePage> createState() => _CalendarHomePageState();
@@ -38,12 +89,14 @@ class CalendarHomePage extends StatefulWidget {
 
 class _CalendarHomePageState extends State<CalendarHomePage>
     with WidgetsBindingObserver {
-  WidgetSettings? _settings;
   CalendarWidgetData? _data;
   bool _isRefreshing = false;
   bool _calendarGranted = false;
   bool _permanentlyDenied = false;
   Uint8List? _wallpaperPng;
+  Timer? _backgroundWidgetUpdateDebounce;
+
+  WidgetSettings get _settings => widget.settings;
 
   @override
   void initState() {
@@ -54,6 +107,7 @@ class _CalendarHomePageState extends State<CalendarHomePage>
 
   @override
   void dispose() {
+    _backgroundWidgetUpdateDebounce?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -97,13 +151,9 @@ class _CalendarHomePageState extends State<CalendarHomePage>
   }
 
   Future<void> _loadInitialState() async {
-    final settings = await WidgetSettings.load();
     final cached = await CalendarWidgetData.loadFromPrefs();
     if (!mounted) return;
-    setState(() {
-      _settings = settings;
-      _data = cached;
-    });
+    setState(() => _data = cached);
     await _syncPermissionState(requestIfNeeded: true);
     await _loadWallpaper(requestIfNeeded: true);
   }
@@ -161,6 +211,52 @@ class _CalendarHomePageState extends State<CalendarHomePage>
     }
   }
 
+  Future<void> _handleSettingsChanged(WidgetSettings updated) async {
+    final previous = _settings;
+
+    widget.onSettingsChanged(updated);
+    await updated.save();
+    if (!mounted) return;
+
+    final refreshNeeded =
+        previous.locale != updated.locale ||
+        previous.headerColor != updated.headerColor ||
+        previous.headerFontSize != updated.headerFontSize ||
+        previous.eventFontSize != updated.eventFontSize ||
+        previous.fetchDays != updated.fetchDays;
+    final widgetUpdateNeeded =
+        previous.backgroundColor != updated.backgroundColor ||
+        previous.backgroundOpacity != updated.backgroundOpacity;
+
+    debugPrint(
+      'handleSettingsChanged: refreshNeeded=$refreshNeeded, '
+      'widgetUpdateNeeded=$widgetUpdateNeeded',
+    );
+
+    if (refreshNeeded && _calendarGranted) {
+      await _refresh();
+    } else if (widgetUpdateNeeded) {
+      _scheduleBackgroundWidgetUpdate();
+    }
+  }
+
+  void _scheduleBackgroundWidgetUpdate() {
+    _backgroundWidgetUpdateDebounce?.cancel();
+    _backgroundWidgetUpdateDebounce = Timer(
+      const Duration(milliseconds: 300),
+      () async {
+        if (!mounted) return;
+        try {
+          await CalendarPlatformChannel.updateWidget();
+        } on PlatformException catch (error) {
+          debugPrint(
+            'updateWidget failed: code=${error.code}, message=${error.message}',
+          );
+        }
+      },
+    );
+  }
+
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(
       context,
@@ -169,7 +265,6 @@ class _CalendarHomePageState extends State<CalendarHomePage>
 
   @override
   Widget build(BuildContext context) {
-    final settings = _settings;
     final previewHeight = MediaQuery.sizeOf(context).height * 0.5;
 
     return Scaffold(
@@ -189,38 +284,35 @@ class _CalendarHomePageState extends State<CalendarHomePage>
           ),
         ],
       ),
-      body: settings == null
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(
-                  height: previewHeight,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: CalendarPreviewFrame(
-                      settings: settings,
-                      data: _data,
-                      wallpaperPng: _wallpaperPng,
-                      isLoading: _isRefreshing,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: _calendarGranted
-                      ? const Center(
-                          child: Text(
-                            'Instellingen volgen in de volgende stap.',
-                          ),
-                        )
-                      : CalendarPermissionBanner(
-                          permanentlyDenied: _permanentlyDenied,
-                          onRequest: _requestPermission,
-                          onOpenSettings: _openSettings,
-                        ),
-                ),
-              ],
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            height: previewHeight,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: CalendarPreviewFrame(
+                settings: _settings,
+                data: _data,
+                wallpaperPng: _wallpaperPng,
+                isLoading: _isRefreshing,
+              ),
             ),
+          ),
+          Expanded(
+            child: _calendarGranted
+                ? WidgetSettingsPanel(
+                    settings: _settings,
+                    onSettingsChanged: _handleSettingsChanged,
+                  )
+                : CalendarPermissionBanner(
+                    permanentlyDenied: _permanentlyDenied,
+                    onRequest: _requestPermission,
+                    onOpenSettings: _openSettings,
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }

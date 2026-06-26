@@ -1,0 +1,36 @@
+{
+  "@@locale": "en",
+  "settingsLanguage": "Language",
+  "settingsAppearance": "Appearance",
+  "settingsHeaderColor": "Header color",
+  "settingsHeaderFontSize": "Header font size",
+  "settingsEventFontSize": "Event font size",
+  "settingsFetchDays": "Days to fetch",
+  "settingsFontSizeValue": "{size}",
+  "@settingsFontSizeValue": {
+    "placeholders": {
+      "size": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsFetchDaysValue": "{days} days",
+  "@settingsFetchDaysValue": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsBackground": "Background",
+  "settingsBackgroundColor": "Color",
+  "settingsBackgroundOpacity": "Opacity",
+  "settingsOpacityValue": "{percent}%",
+  "@settingsOpacityValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  }
+}

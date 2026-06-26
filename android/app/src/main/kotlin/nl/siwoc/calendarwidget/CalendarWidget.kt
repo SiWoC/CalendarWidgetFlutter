@@ -2,6 +2,7 @@ package nl.siwoc.calendarwidget
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -15,7 +16,9 @@ import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.appwidget.lazy.items
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.currentState
 import androidx.glance.layout.Alignment
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.layout.Box
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxSize
@@ -27,9 +30,14 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import androidx.datastore.preferences.core.Preferences
+
+private const val LOG_TAG = "CalendarWidget"
 
 /** Home-screen widget: reads [CalendarWidgetData] snapshot and draws the calendar card. */
 class CalendarWidget : GlanceAppWidget() {
+
+    override val stateDefinition = PreferencesGlanceStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
@@ -40,8 +48,16 @@ class CalendarWidget : GlanceAppWidget() {
 
 @Composable
 private fun CalendarWidgetContent(context: Context) {
+    val glancePrefs = currentState<Preferences>()
+    // Subscribes to [WidgetGlanceState.REDRAW_AT] so Glance recomposes after update().
+    val redrawAt = glancePrefs[WidgetGlanceState.REDRAW_AT]
     val data = CalendarWidgetData.load(context)
     val settings = WidgetSettings.load(context)
+    Log.d(
+        LOG_TAG,
+        "WidgetSettings.load (at draw): backgroundColor=${settings.backgroundColor} " +
+            "backgroundOpacity=${settings.backgroundOpacity} redrawAt=$redrawAt",
+    )
     val cardColor = ColorProvider(
         Utils.backgroundFill(settings.backgroundColor, settings.backgroundOpacity),
     )

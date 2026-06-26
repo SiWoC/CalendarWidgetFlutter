@@ -10,6 +10,7 @@ abstract final class CalendarPlatformChannel {
   static const METHOD_REFRESH = 'refresh';
   static const METHOD_SCHEDULE_PERIODIC_REFRESH = 'schedulePeriodicRefresh';
   static const METHOD_GET_WALLPAPER = 'getWallpaper';
+  static const METHOD_UPDATE_WIDGET = 'updateWidget';
 
   /// Runs [CalendarRefreshWorker] on Android and returns the written snapshot.
   static Future<CalendarWidgetData> refresh() async {
@@ -29,5 +30,10 @@ abstract final class CalendarPlatformChannel {
   static Future<Uint8List?> getWallpaper() async {
     final bytes = await _channel.invokeMethod<Uint8List>(METHOD_GET_WALLPAPER);
     return bytes;
+  }
+
+  /// Redraws the home-screen Glance widget (e.g. after background settings change).
+  static Future<void> updateWidget() async {
+    await _channel.invokeMethod<void>(METHOD_UPDATE_WIDGET);
   }
 }

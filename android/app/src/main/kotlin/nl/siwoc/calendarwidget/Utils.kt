@@ -1,5 +1,6 @@
 package nl.siwoc.calendarwidget
 
+import android.content.SharedPreferences
 import android.graphics.Color as AndroidColor
 import androidx.compose.ui.graphics.Color
 
@@ -20,5 +21,16 @@ object Utils {
     fun backgroundFill(hex: String, opacityPercent: Int): Color {
         val clamped = opacityPercent.coerceIn(0, 100)
         return hexToColor(hex).copy(alpha = clamped / 100f)
+    }
+}
+
+/** Flutter [shared_preferences] may store ints as [Long] on Android. */
+fun SharedPreferences.getIntCompat(key: String, defaultValue: Int): Int {
+    val raw = all[key] ?: return defaultValue
+    return when (raw) {
+        is Int -> raw
+        is Long -> raw.toInt()
+        is String -> raw.toIntOrNull() ?: defaultValue
+        else -> defaultValue
     }
 }

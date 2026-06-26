@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_preferences_android/shared_preferences_android.dart';
 
@@ -28,6 +29,25 @@ class WidgetSettings {
 
   /// Parsed from CSV in prefs; empty = include all visible calendars.
   final Set<int> selectedCalendarIds;
+
+  /// Flutter [Locale] for companion-app UI strings (from BCP 47 [locale]).
+  Locale get appLocale {
+    final parts = locale.split('-');
+    if (parts.length >= 2) {
+      return Locale(parts[0], parts[1]);
+    }
+    return Locale(parts[0]);
+  }
+
+  static const languageLabels = <String, String>{
+    WidgetConstants.APP_LOCALE_NL: 'Nederlands',
+    WidgetConstants.APP_LOCALE_EN: 'English',
+  };
+
+  static const supportedAppLocales = <String>[
+    WidgetConstants.APP_LOCALE_NL,
+    WidgetConstants.APP_LOCALE_EN,
+  ];
 
   static Future<SharedPreferencesWithCache> _prefs() {
     return SharedPreferencesWithCache.create(
@@ -90,14 +110,12 @@ class WidgetSettings {
     await prefs.setInt(WidgetConstants.KEY_FETCH_DAYS, fetchDays);
     await prefs.setString(WidgetConstants.KEY_LOCALE, locale);
     await prefs.setString(WidgetConstants.KEY_BACKGROUND_COLOR, backgroundColor);
-    await prefs.setInt(
-      WidgetConstants.KEY_BACKGROUND_OPACITY,
-      backgroundOpacity,
+    await prefs.setInt(WidgetConstants.KEY_BACKGROUND_OPACITY, backgroundOpacity);
+    debugPrint(
+      'WidgetSettings.save: backgroundColor=$backgroundColor '
+      'backgroundOpacity=$backgroundOpacity',
     );
-    await prefs.setString(
-      WidgetConstants.KEY_SELECTED_CALENDAR_IDS,
-      _encodeCalendarIds(selectedCalendarIds),
-    );
+    await prefs.setString(WidgetConstants.KEY_SELECTED_CALENDAR_IDS, _encodeCalendarIds(selectedCalendarIds));
   }
 
   WidgetSettings copyWith({

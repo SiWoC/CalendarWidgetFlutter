@@ -27,6 +27,7 @@ class CalendarPlatformChannel(
             METHOD_REFRESH -> refresh(result)
             METHOD_SCHEDULE_PERIODIC_REFRESH -> schedulePeriodicRefresh(result)
             METHOD_GET_WALLPAPER -> getWallpaper(result)
+            METHOD_UPDATE_WIDGET -> updateWidget(result)
             else -> result.notImplemented()
         }
     }
@@ -61,6 +62,19 @@ class CalendarPlatformChannel(
         }
     }
 
+    private fun updateWidget(result: MethodChannel.Result) {
+        try {
+            CalendarWidgetUpdater.requestUpdate(context)
+            result.success(null)
+        } catch (exception: Exception) {
+            result.error(
+                ERROR_UPDATE_WIDGET_FAILED,
+                exception.message,
+                null,
+            )
+        }
+    }
+
     private fun refresh(result: MethodChannel.Result) {
         refreshExecutor.execute {
             try {
@@ -87,10 +101,12 @@ class CalendarPlatformChannel(
         const val METHOD_REFRESH = "refresh"
         const val METHOD_SCHEDULE_PERIODIC_REFRESH = "schedulePeriodicRefresh"
         const val METHOD_GET_WALLPAPER = "getWallpaper"
+        const val METHOD_UPDATE_WIDGET = "updateWidget"
 
         private const val ERROR_REFRESH_FAILED = "refresh_failed"
         private const val ERROR_SCHEDULE_FAILED = "schedule_failed"
         private const val ERROR_WALLPAPER_FAILED = "wallpaper_failed"
+        private const val ERROR_UPDATE_WIDGET_FAILED = "update_widget_failed"
 
         private val refreshExecutor = Executors.newSingleThreadExecutor()
     }

@@ -1,0 +1,15 @@
+{
+  "@@locale": "nl",
+  "settingsLanguage": "Taal",
+  "settingsAppearance": "Weergave",
+  "settingsHeaderColor": "Kopkleur",
+  "settingsHeaderFontSize": "Lettergrootte kop",
+  "settingsEventFontSize": "Lettergrootte afspraken",
+  "settingsFetchDays": "Dagen ophalen",
+  "settingsFontSizeValue": "{size}",
+  "settingsFetchDaysValue": "{days} dagen",
+  "settingsBackground": "Achtergrond",
+  "settingsBackgroundColor": "Kleur",
+  "settingsBackgroundOpacity": "Dekking",
+  "settingsOpacityValue": "{percent}%"
+}
