@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -21,6 +22,7 @@ import androidx.glance.layout.Alignment
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.layout.Box
 import androidx.glance.layout.Row
+import androidx.glance.layout.absolutePadding
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
@@ -31,6 +33,7 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import androidx.datastore.preferences.core.Preferences
+import androidx.compose.ui.graphics.Color
 
 private const val LOG_TAG = "CalendarWidget"
 
@@ -167,7 +170,6 @@ private fun PlaceholderText(
 
 @Composable
 private fun EventLine(event: CalendarEvent, headerColor: ColorProvider) {
-    val eventColor = ColorProvider(Utils.hexToColor(event.color))
     val locationSuffix = event.location?.let { " [$it]" }.orEmpty()
     val prefix = if (event.isAllDay) {
         "● "
@@ -188,13 +190,64 @@ private fun EventLine(event: CalendarEvent, headerColor: ColorProvider) {
                 fontWeight = FontWeight.Bold,
             ),
         )
-        Text(
+        OutlinedEventText(
             text = "${event.title}$locationSuffix",
+            fillColor = Utils.hexToColor(event.color),
+            fontSize = event.fontSize.sp,
             modifier = GlanceModifier.defaultWeight(),
+        )
+    }
+}
+
+/** Logical-pixel offsets; outline layers use [outlineShiftPadding]. */
+private data class OutlineOffset(val x: Int, val y: Int)
+
+private val outlineOffsets = listOf(
+    OutlineOffset(-1, 0),
+    OutlineOffset(2, 0),
+    OutlineOffset(1, -1),
+)
+
+private fun GlanceModifier.outlineShiftPadding(offset: OutlineOffset): GlanceModifier =
+    absolutePadding(
+        left = if (offset.x > 0) offset.x.dp else 0.dp,
+        top = if (offset.y > 0) offset.y.dp else 0.dp,
+        right = if (offset.x < 0) (-offset.x).dp else 0.dp,
+        bottom = if (offset.y < 0) (-offset.y).dp else 0.dp,
+    )
+
+@Composable
+private fun OutlinedEventText(
+    text: String,
+    fillColor: Color,
+    fontSize: TextUnit,
+    modifier: GlanceModifier = GlanceModifier,
+) {
+    val outlineColor = ColorProvider(Utils.outlineColorForFill(fillColor))
+    val fill = ColorProvider(fillColor)
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.TopStart,
+    ) {
+        for (offset in outlineOffsets) {
+            Text(
+                text = text,
+                modifier = GlanceModifier
+                    .fillMaxWidth()
+                    .outlineShiftPadding(offset),
+                style = TextStyle(
+                    color = outlineColor,
+                    fontSize = fontSize,
+                ),
+            )
+        }
+        Text(
+            text = text,
+            modifier = GlanceModifier.fillMaxWidth(),
             style = TextStyle(
-                color = eventColor,
-                fontSize = event.fontSize.sp,
-                fontWeight = FontWeight.Bold,
+                color = fill,
+                fontSize = fontSize,
             ),
         )
     }

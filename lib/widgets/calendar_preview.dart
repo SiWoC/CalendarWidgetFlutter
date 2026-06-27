@@ -113,21 +113,68 @@ class _EventLine extends StatelessWidget {
         ? '● '
         : (event.time != null ? '${event.time} ' : '');
 
-    final baseStyle = TextStyle(
-      fontSize: fontSizeValue,
-      fontWeight: FontWeight.bold,
-    );
+    final baseStyle = TextStyle(fontSize: fontSizeValue);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (prefix.isNotEmpty)
-          Text(prefix, style: baseStyle.copyWith(color: headerColor)),
+          Text(prefix, style: baseStyle.copyWith(color: headerColor, fontWeight: FontWeight.bold)),
         Expanded(
-          child: Text(
-            '${event.title}$locationSuffix',
-            style: baseStyle.copyWith(color: eventColor),
+          child: _OutlinedText(
+            text: '${event.title}$locationSuffix',
+            color: eventColor,
+            style: baseStyle,
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Three 1-logical-pixel outline offsets; fill drawn on top.
+class _OutlinedText extends StatelessWidget {
+  const _OutlinedText({
+    required this.text,
+    required this.style,
+    required this.color,
+  });
+
+  final String text;
+  final TextStyle style;
+  final Color color;
+
+  static const _outlineOffsets = <Offset>[
+    Offset(-1, 0),
+    Offset(2, 0),
+    //Offset(0, -1),
+    //Offset(0, 1),
+    //Offset(-1, -1),
+    Offset(1, -1),
+    //Offset(-1, 1),
+    //Offset(1, 1),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final outline = Utils.outlineColorForFill(color);
+    final fillStyle = style.copyWith(color: color);
+    final outlineStyle = style.copyWith(color: outline);
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        for (final offset in _outlineOffsets)
+          Transform.translate(
+            offset: offset,
+            child: Text(
+              text,
+              style: outlineStyle,
+            ),
+          ),
+        Text(
+          text,
+          style: fillStyle,
         ),
       ],
     );

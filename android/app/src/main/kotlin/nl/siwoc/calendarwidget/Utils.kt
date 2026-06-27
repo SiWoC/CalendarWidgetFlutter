@@ -6,6 +6,8 @@ import android.content.res.Configuration
 import android.graphics.Color as AndroidColor
 import androidx.annotation.StringRes
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.ColorUtils
 import java.util.Locale
 
 object Utils {
@@ -25,6 +27,22 @@ object Utils {
     fun backgroundFill(hex: String, opacityPercent: Int): Color {
         val clamped = opacityPercent.coerceIn(0, 100)
         return hexToColor(hex).copy(alpha = clamped / 100f)
+    }
+
+    /** WCAG 2.x contrast ratio between two sRGB colors. */
+    fun contrastRatio(a: Color, b: Color): Double {
+        val l1 = ColorUtils.calculateLuminance(a.toArgb())
+        val l2 = ColorUtils.calculateLuminance(b.toArgb())
+        val lighter = maxOf(l1, l2)
+        val darker = minOf(l1, l2)
+        return (lighter + 0.05) / (darker + 0.05)
+    }
+
+    /** Black or white outline that contrasts best with [fill]. */
+    fun outlineColorForFill(fill: Color): Color {
+        val black = Color.Black
+        val white = Color.White
+        return if (contrastRatio(fill, black) >= contrastRatio(fill, white)) black else white
     }
 
     /** Resolves [resId] for the user-selected app locale ([WidgetSettings.locale]). */
