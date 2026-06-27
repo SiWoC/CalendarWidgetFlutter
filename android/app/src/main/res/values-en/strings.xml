@@ -9,5 +9,7 @@
     <string name="error_unknown">Unknown error</string>
     <string name="section_today">TODAY</string>
     <string name="section_tomorrow">TOMORROW</string>
+    <string name="date_format_header">EEEE, MMMM d, yyyy</string>
+    <string name="date_format_section">EEEE, MMMM d</string>
     <string name="widget_empty_load_data">Open the app to load calendar data.</string>
 </resources>

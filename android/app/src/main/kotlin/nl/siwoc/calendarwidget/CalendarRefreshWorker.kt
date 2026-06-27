@@ -22,7 +22,7 @@ object CalendarRefreshWorker {
 
     fun refresh(context: Context): CalendarWidgetData {
         val settings = WidgetSettings.load(context)
-        val headerDate = formatHeaderDate(settings)
+        val headerDate = formatHeaderDate(context, settings)
 
         if (!hasCalendarPermission(context)) {
             return saveAndReturn(
@@ -136,9 +136,10 @@ object CalendarRefreshWorker {
     private fun localeFromSettings(settings: WidgetSettings): Locale =
         Locale.forLanguageTag(settings.locale)
 
-    private fun formatHeaderDate(settings: WidgetSettings): String {
+    private fun formatHeaderDate(context: Context, settings: WidgetSettings): String {
         val locale = localeFromSettings(settings)
-        val formatter = SimpleDateFormat("EEEE d MMMM yyyy", locale)
+        val pattern = Utils.stringForLocale(context, settings.locale, R.string.date_format_header)
+        val formatter = SimpleDateFormat(pattern, locale)
         return formatter.format(Date()).replaceFirstChar { char ->
             if (char.isLowerCase()) char.titlecase(locale) else char.toString()
         }
@@ -157,7 +158,8 @@ object CalendarRefreshWorker {
         if (dayOffset == 1) {
             return Utils.stringForLocale(context, settings.locale, R.string.section_tomorrow)
         }
-        val formatter = SimpleDateFormat("EEEE d MMMM", locale)
+        val pattern = Utils.stringForLocale(context, settings.locale, R.string.date_format_section)
+        val formatter = SimpleDateFormat(pattern, locale)
         return formatter.format(date.time).replaceFirstChar { char ->
             if (char.isLowerCase()) char.titlecase(locale) else char.toString()
         }
