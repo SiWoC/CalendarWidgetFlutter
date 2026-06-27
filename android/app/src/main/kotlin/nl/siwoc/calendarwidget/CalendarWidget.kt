@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.action.Action
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.action.actionStartActivity
@@ -65,84 +66,98 @@ private fun CalendarWidgetContent(context: Context) {
         Utils.backgroundFill(settings.backgroundColor, settings.backgroundOpacity),
     )
     val openApp = actionStartActivity(
-        Intent(context, MainActivity::class.java),
+        Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        },
     )
 
-    Box(
+    LazyColumn(
         modifier = GlanceModifier
             .fillMaxSize()
-            .clickable(onClick = openApp),
-        contentAlignment = Alignment.TopCenter,
+            .background(cardColor)
+            .cornerRadius(12.dp)
+            .padding(horizontal = 10.dp, vertical = 10.dp),
     ) {
-        LazyColumn(
-            modifier = GlanceModifier
-                .fillMaxSize()
-                .background(cardColor)
-                .cornerRadius(12.dp)
-                .padding(horizontal = 10.dp, vertical = 10.dp),
-        ) {
-            when {
-                data == null -> {
-                    item {
-                        PlaceholderText(
-                            text = Utils.stringForLocale(
-                                context,
-                                settings.locale,
-                                R.string.widget_empty_load_data,
-                            ),
-                            color = ColorProvider(Utils.hexToColor(settings.headerColor)),
-                            fontSizeSp = settings.headerFontSize,
-                        )
-                    }
+        when {
+            data == null -> {
+                item {
+                    PlaceholderText(
+                        text = Utils.stringForLocale(
+                            context,
+                            settings.locale,
+                            R.string.widget_empty_load_data,
+                        ),
+                        color = ColorProvider(Utils.hexToColor(settings.headerColor)),
+                        fontSizeSp = settings.headerFontSize,
+                        modifier = GlanceModifier.openAppOnClick(openApp),
+                    )
+                }
+            }
+
+            data.hasError -> {
+                item {
+                    PlaceholderText(
+                        text = data.error?.message.orEmpty(),
+                        color = ColorProvider(Utils.hexToColor(data.headerColor)),
+                        fontSizeSp = data.headerFontSize,
+                        modifier = GlanceModifier.openAppOnClick(openApp),
+                    )
+                }
+            }
+
+            else -> {
+                val headerColor = ColorProvider(Utils.hexToColor(data.headerColor))
+                item {
+                    Text(
+                        text = data.headerDate,
+                        modifier = GlanceModifier
+                            .fillMaxWidth()
+                            .openAppOnClick(openApp),
+                        style = TextStyle(
+                            color = headerColor,
+                            fontSize = data.headerFontSize.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                        ),
+                    )
+                }
+                item {
+                    Box(
+                        GlanceModifier
+                            .height(6.dp)
+                            .fillMaxWidth()
+                            .openAppOnClick(openApp),
+                    ) {}
                 }
 
-                data.hasError -> {
-                    item {
-                        PlaceholderText(
-                            text = data.error?.message.orEmpty(),
-                            color = ColorProvider(Utils.hexToColor(data.headerColor)),
-                            fontSizeSp = data.headerFontSize,
-                        )
-                    }
-                }
-
-                else -> {
-                    val headerColor = ColorProvider(Utils.hexToColor(data.headerColor))
+                for (section in data.sections) {
+                    if (section.events.isEmpty()) continue
+                    val sectionFontSize = section.events.first().fontSize
                     item {
                         Text(
-                            text = data.headerDate,
-                            modifier = GlanceModifier.fillMaxSize(),
+                            text = section.title,
+                            modifier = GlanceModifier.openAppOnClick(openApp),
                             style = TextStyle(
                                 color = headerColor,
-                                fontSize = data.headerFontSize.sp,
+                                fontSize = sectionFontSize.sp,
                                 fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Center,
                             ),
                         )
                     }
-                    item {
-                        Box(GlanceModifier.height(6.dp)) {}
+                    items(section.events) { event ->
+                        EventLine(
+                            event = event,
+                            headerColor = headerColor,
+                            openApp = openApp,
+                        )
                     }
-
-                    for (section in data.sections) {
-                        if (section.events.isEmpty()) continue
-                        val sectionFontSize = section.events.first().fontSize
-                        item {
-                            Text(
-                                text = section.title,
-                                style = TextStyle(
-                                    color = headerColor,
-                                    fontSize = sectionFontSize.sp,
-                                    fontWeight = FontWeight.Bold,
-                                ),
-                            )
-                        }
-                        items(section.events) { event ->
-                            EventLine(event = event, headerColor = headerColor)
-                        }
-                        item {
-                            Box(GlanceModifier.height(4.dp)) {}
-                        }
+                    item {
+                        Box(
+                            GlanceModifier
+                                .height(4.dp)
+                                .fillMaxWidth()
+                                .openAppOnClick(openApp),
+                        ) {}
                     }
                 }
             }
@@ -155,10 +170,11 @@ private fun PlaceholderText(
     text: String,
     color: ColorProvider,
     fontSizeSp: Int,
+    modifier: GlanceModifier = GlanceModifier,
 ) {
     Text(
         text = text,
-        modifier = GlanceModifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         style = TextStyle(
             color = color,
             fontSize = fontSizeSp.sp,
@@ -169,7 +185,11 @@ private fun PlaceholderText(
 }
 
 @Composable
-private fun EventLine(event: CalendarEvent, headerColor: ColorProvider) {
+private fun EventLine(
+    event: CalendarEvent,
+    headerColor: ColorProvider,
+    openApp: Action,
+) {
     val locationSuffix = event.location?.let { " [$it]" }.orEmpty()
     val prefix = if (event.isAllDay) {
         "● "
@@ -179,7 +199,9 @@ private fun EventLine(event: CalendarEvent, headerColor: ColorProvider) {
     // Match Flutter preview: prefix keeps natural width; title uses remaining card
     // width and wraps (Expanded). fillMaxWidth + defaultWeight is Glance's equivalent.
     Row(
-        modifier = GlanceModifier.fillMaxWidth(),
+        modifier = GlanceModifier
+            .fillMaxWidth()
+            .openAppOnClick(openApp),
         verticalAlignment = Alignment.Vertical.Top,
     ) {
         Text(
@@ -198,6 +220,9 @@ private fun EventLine(event: CalendarEvent, headerColor: ColorProvider) {
         )
     }
 }
+
+private fun GlanceModifier.openAppOnClick(action: Action): GlanceModifier =
+    clickable(onClick = action)
 
 /** Logical-pixel offsets; outline layers use [outlineShiftPadding]. */
 private data class OutlineOffset(val x: Int, val y: Int)
